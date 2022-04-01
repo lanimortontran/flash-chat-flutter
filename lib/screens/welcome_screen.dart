@@ -9,11 +9,70 @@ class WelcomeScreen extends StatefulWidget {
   _WelcomeScreenState createState() => _WelcomeScreenState();
 }
 
-class _WelcomeScreenState extends State<WelcomeScreen> {
+class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProviderStateMixin {
+  AnimationController controller;
+  Animation animation;
+
+  @override
+  void initState() {
+    super.initState();
+
+    controller = AnimationController(
+      vsync: this,
+      duration: Duration(seconds: 1),
+
+      // upperBound: 100, // when a curve is applied, upperBound cannot be greater than 1 since they draw from 0 to 1.
+    );
+
+    // parent: what animation we want to apply this curve to
+    // curve: what type of curve
+    /*
+    animation = CurvedAnimation(
+      parent: controller,
+      curve: Curves.decelerate,
+    );
+    */
+
+    animation = ColorTween(
+      begin: Colors.white,
+      end: Colors.blueGrey,
+    ).animate(controller);
+
+    controller.forward();
+    // controller.reverse(from: 1.0);
+
+    /*
+    animation.addStatusListener((status) {
+      // forward() = Animation.completed
+      // reverse() = Animation.dismissed
+      print(status);
+
+      // This allows for an endless loop
+      if (status == AnimationStatus.completed) {
+        controller.reverse(from: 1.0);
+      } else if (status == AnimationStatus.dismissed) {
+        controller.forward();
+      }
+    });
+    */
+
+    controller.addListener(() {
+      setState(() {});
+      // print(controller.value);
+      print(animation.value);
+    });
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    controller.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: animation.value,
       body: Padding(
         padding: EdgeInsets.symmetric(horizontal: 24.0),
         child: Column(
@@ -26,6 +85,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   tag: 'logo',
                   child: Container(
                     child: Image.asset('images/logo.png'),
+                    // height: animation.value * 100, // multiply by 100 since value ranges from 0 to 1
                     height: 60.0,
                   ),
                 ),
