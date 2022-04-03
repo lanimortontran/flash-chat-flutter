@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "63983110034",
+    "project_id": "flash-chat-ce754",
+    "storage_bucket": "flash-chat-ce754.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:63983110034:android:fc80944b353e5eab70a34b",
+        "android_client_info": {
+          "package_name": "com.lanimortontran.flash_chat"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "63983110034-i6q56iau76b7t1lfcrvficq6s23mj9b9.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDd-WJ7oV2i0CS-AAqh5Mrs3lwp8m2qcw4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "63983110034-i6q56iau76b7t1lfcrvficq6s23mj9b9.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
