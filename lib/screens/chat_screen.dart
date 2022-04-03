@@ -27,6 +27,23 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
+  Future<void> getMessages() async {
+    final CollectionReference<Map<String, dynamic>> messagesRef = _firestore.collection('messages');
+    List<QueryDocumentSnapshot<Map<String, dynamic>>> messages = await messagesRef.get().then((snapshot) => snapshot.docs);
+    for (var message in messages) {
+      print(message.data());
+    }
+  }
+
+  void messagesStream() async {
+    Stream<QuerySnapshot<Map<String, dynamic>>> messagesStream = _firestore.collection('messages').snapshots();
+    messagesStream.forEach((snapshot) {
+      for (var doc in snapshot.docs) {
+        print(doc.data());
+      }
+    });
+  }
+
   @override
   void initState() {
     super.initState();
@@ -43,8 +60,11 @@ class _ChatScreenState extends State<ChatScreen> {
               icon: Icon(Icons.close),
               onPressed: () {
                 //Implement logout functionality
-                _auth.signOut();
-                Navigator.pop(context);
+                // _auth.signOut();
+                // Navigator.pop(context);
+
+                // getMessages();
+                messagesStream();
               }),
         ],
         title: Text('⚡️Chat'),
