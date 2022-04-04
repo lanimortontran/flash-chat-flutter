@@ -27,23 +27,6 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
-  Future<void> getMessages() async {
-    final CollectionReference<Map<String, dynamic>> messagesRef = _firestore.collection('messages');
-    List<QueryDocumentSnapshot<Map<String, dynamic>>> messages = await messagesRef.get().then((snapshot) => snapshot.docs);
-    for (var message in messages) {
-      print(message.data());
-    }
-  }
-
-  void messagesStream() async {
-    Stream<QuerySnapshot<Map<String, dynamic>>> messagesStream = _firestore.collection('messages').snapshots();
-    messagesStream.forEach((snapshot) {
-      for (var doc in snapshot.docs) {
-        print(doc.data());
-      }
-    });
-  }
-
   @override
   void initState() {
     super.initState();
@@ -59,12 +42,8 @@ class _ChatScreenState extends State<ChatScreen> {
           IconButton(
               icon: Icon(Icons.close),
               onPressed: () {
-                //Implement logout functionality
-                // _auth.signOut();
-                // Navigator.pop(context);
-
-                // getMessages();
-                messagesStream();
+                _auth.signOut();
+                Navigator.pop(context);
               }),
         ],
         title: Text('⚡️Chat'),
@@ -75,6 +54,32 @@ class _ChatScreenState extends State<ChatScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
+            StreamBuilder<QuerySnapshot>(
+              builder: (context, snapshot) {
+                if (!snapshot.hasData) {
+                  return Center(
+                    child: CircularProgressIndicator(
+                      backgroundColor: Colors.lightBlueAccent,
+                    ),
+                  );
+                } else {
+                  final messages = snapshot.data.docs;
+                  List<Text> messageWidgets = [];
+                  for (var message in messages) {
+                    final data = message.data() as Map<String, dynamic>;
+                    final messageText = data['text'];
+                    final messageSender = data['sender'];
+
+                    final messageWidget = Text('$messageText from $messageSender');
+                    messageWidgets.add(messageWidget);
+                  }
+                  return Column(
+                    children: messageWidgets,
+                  );
+                }
+              },
+              stream: _firestore.collection('messages').snapshots(),
+            ),
             Container(
               decoration: kMessageContainerDecoration,
               child: Row(
