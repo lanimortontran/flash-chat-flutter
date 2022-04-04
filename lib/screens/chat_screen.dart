@@ -1,9 +1,12 @@
+import 'dart:ui';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flash_chat/constants.dart';
 import 'package:flutter/material.dart';
 
 final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+User loggedInUser;
 
 class ChatScreen extends StatefulWidget {
   static String id = 'chat_screen';
@@ -15,7 +18,6 @@ class ChatScreen extends StatefulWidget {
 class _ChatScreenState extends State<ChatScreen> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final TextEditingController messageTextController = TextEditingController();
-  User loggedInUser;
   String messageText;
 
   Future<void> getCurrentUser() async {
@@ -77,6 +79,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       _firestore.collection('messages').add({
                         'text': messageText,
                         'sender': loggedInUser.email,
+                        'created_at': FieldValue.serverTimestamp(),
                       });
                     },
                     child: Text(
@@ -98,6 +101,7 @@ class MessagesStream extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<QuerySnapshot>(
+      stream: _firestore.collection('messages').orderBy('created_at', descending: true).snapshots(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
           return Center(
@@ -106,6 +110,7 @@ class MessagesStream extends StatelessWidget {
             ),
           );
         } else {
+          // final messages = snapshot.data.docs;
           final messages = snapshot.data.docs;
           List<MessageBubble> messageBubbles = [];
           for (var message in messages) {
@@ -116,18 +121,19 @@ class MessagesStream extends StatelessWidget {
             final messageBubble = MessageBubble(
               sender: messageSender,
               text: messageText,
+              isMe: messageSender == loggedInUser.email,
             );
             messageBubbles.add(messageBubble);
           }
           return Expanded(
             child: ListView(
+              reverse: true,
               padding: EdgeInsets.symmetric(horizontal: 10.0, vertical: 20.0),
               children: messageBubbles,
             ),
           );
         }
       },
-      stream: _firestore.collection('messages').snapshots(),
     );
   }
 }
@@ -135,15 +141,16 @@ class MessagesStream extends StatelessWidget {
 class MessageBubble extends StatelessWidget {
   final String sender;
   final String text;
+  final bool isMe;
 
-  const MessageBubble({Key key, this.sender, this.text}) : super(key: key);
+  const MessageBubble({Key key, this.sender, this.text, this.isMe}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(10.0),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.end,
+        crossAxisAlignment: isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
         children: [
           Text(
             sender,
@@ -154,8 +161,13 @@ class MessageBubble extends StatelessWidget {
           ),
           Material(
             elevation: 5.0,
-            borderRadius: BorderRadius.circular(30.0),
-            color: Colors.lightBlueAccent,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(isMe ? 30.0 : 0.0),
+              topRight: Radius.circular(isMe ? 0.0 : 30.0),
+              bottomLeft: Radius.circular(30.0),
+              bottomRight: Radius.circular(30.0),
+            ),
+            color: isMe ? Colors.lightBlueAccent : Colors.white,
             child: Padding(
               padding: const EdgeInsets.symmetric(
                 vertical: 10.0,
@@ -163,7 +175,10 @@ class MessageBubble extends StatelessWidget {
               ),
               child: Text(
                 text,
-                style: TextStyle(fontSize: 15.0, color: Colors.white),
+                style: TextStyle(
+                  fontSize: 15.0,
+                  color: isMe ? Colors.white : Colors.black54,
+                ),
               ),
             ),
           ),
